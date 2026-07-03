@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar - PerpusWEB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Gabung PerpusWEB </h1>
+            <p class="text-gray-500">Lengkapi data diri untuk mulai meminjam buku.</p>
+        </div>
+
+        <div id="kotakPesan" class="hidden mb-4 p-3 rounded-lg text-sm font-bold text-center">
+            </div>
+
+        <form id="formDaftar" class="space-y-3">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Nama Lengkap</label>
+                <input type="text" id="inputNama" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Nomor Telepon</label>
+                <input type="number" id="inputTelp" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Alamat</label>
+                <textarea id="inputAlamat" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Username Baru</label>
+                <input type="text" id="inputUsername" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Password</label>
+                <input type="password" id="inputPassword" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </div>
+            
+            <button type="submit" class="w-full bg-gray-900 text-yellow-400 font-bold py-3 rounded-lg hover:bg-black transition mt-4">
+                Daftar Akun
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Sudah punya akun? <a href="login.html" class="text-yellow-600 font-bold hover:underline">Masuk di sini</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const formDaftar = document.getElementById('formDaftar');
+
+        formDaftar.addEventListener('submit', function(event) {
+            event.preventDefault(); // Cegah halaman kedap-kedip
+
+            // Ambil semua data yang diketik (Perhatiin inputTelp udah gue benerin)
+            let dataAnggotaBaru = {
+                nama_anggota: document.getElementById('inputNama').value,
+                nomor_telepon: document.getElementById('inputTelp').value,
+                alamat: document.getElementById('inputAlamat').value,
+                username: document.getElementById('inputUsername').value,
+                password_anggota: document.getElementById('inputPassword').value
+            };
+
+            // Kirim ke Pelayan
+            fetch('/api/anggota', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataAnggotaBaru)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.sukses) {
+                    alert("Pendaftaran Sukses! Silakan login.");
+                    window.location.href = "login.html"; // Lempar ke halaman login
+                } else {
+                    alert("Gagal mendaftar: " + data.pesan);
+                }
+            })
+            .catch(err => {
+                alert("Gagal terhubung ke server!");
+                console.error(err);
+            });
+        });
+    </script>
+</body>
+</html>

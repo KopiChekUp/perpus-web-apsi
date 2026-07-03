@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Admin - PerpusWEB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen">
+
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-yellow-400 mb-2">Login Admin PerpusWEB</h1>
+        </div>
+
+        <div id="kotakPesan" class="hidden mb-4 p-3 rounded-lg text-sm font-bold text-center bg-red-900/50 text-red-400 border border-red-800">
+        </div>
+
+        <form id="formLoginAdmin" class="space-y-5">
+            <div>
+                <label class="block text-sm font-semibold text-gray-400 mb-1">ID Karyawan / Username</label>
+                <input type="text" id="usernameAdmin" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-500" placeholder="Ketik username admin..." required>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-400 mb-1">Kata Sandi Akses</label>
+                <input type="password" id="passwordAdmin" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-500" placeholder="Ketik password rahasia..." required>
+            </div>
+            
+            <button type="submit" class="w-full bg-yellow-400 text-gray-900 font-extrabold py-3 rounded-lg hover:bg-yellow-500 transition shadow-lg mt-6">
+                Login
+            </button>
+        </form>
+
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                Bukan staf? <a href="index.html" class="text-gray-400 font-bold hover:text-white transition">Kembali ke Halaman Utama</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('formLoginAdmin');
+        const kotakPesan = document.getElementById('kotakPesan');
+        form.addEventListener('submit', function(event) {
+        event.preventDefault(); // Cegah halaman kedap-kedip
+        const user = document.getElementById('usernameAdmin').value;
+        const pass = document.getElementById('passwordAdmin').value;
+        // Panggil Pelayan (API) ke rute '/api/login-admin' 
+        fetch('/api/login-admin', {
+        method: 'POST', // Karena kita ngirim data rahasia (password), kita pakai jalur POST
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: user, password: pass }) // Data yang dikirim ke Pelayan
+        })
+        .then(jawabanPelayan => jawabanPelayan.json()) // Baca jawaban pelayan
+        .then(data => {
+            if (data.sukses === true) {
+                 // Kalau sukses, masuk ke halaman admin
+                window.location.href = "admin.html";
+            } else {
+                // Kalau gagal, munculin omelan dari database
+                kotakPesan.classList.remove('hidden');
+                kotakPesan.innerText = data.pesan;
+        }
+    });
+});
+    </script>
+</body>
+</html>

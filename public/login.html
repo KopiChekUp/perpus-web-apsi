@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Anggota - PerpusKu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Masuk PerpusWEB</h1>
+            <p class="text-gray-500">Silakan login buat mulai minjem buku.</p>
+        </div>
+
+        <!-- PASTIKAN ID FORM NYA formLogin -->
+        <form id="formLogin" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Username</label>
+                <!-- PASTIKAN ID NYA inputUsername -->
+                <input type="text" id="inputUsername" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Password</label>
+                <!-- PASTIKAN ID NYA inputPassword -->
+                <input type="password" id="inputPassword" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
+            </div>
+            
+            <button type="submit" class="w-full bg-gray-900 text-yellow-400 font-bold py-3 rounded-lg hover:bg-black transition mt-4">
+                Masuk Akun
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Belum punya akun? <a href="signup.html" class="text-yellow-600 font-bold hover:underline">Daftar di sini</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- OTAK JAVASCRIPT YANG BERSIH -->
+    <script>
+        const formLogin = document.getElementById('formLogin');
+
+        formLogin.addEventListener('submit', function(event) {
+            // INI PENTING BANGET: Biar web gak ngasal reload sendiri
+            event.preventDefault(); 
+
+            const user = document.getElementById('inputUsername').value;
+            const pass = document.getElementById('inputPassword').value;
+
+            // Panggil Pelayan buat ngecek ke Kulkas (Database)
+            fetch('/api/login-anggota', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            })
+            .then(jawaban => jawaban.json())
+            .then(data => {
+                // SATPAM BARU BERAKSI DI SINI:
+                if (data.sukses === true) {
+                    // MANTRA KARTU VIP: Simpan data orang ini ke memori browser
+                    localStorage.setItem('anggotaLogin', JSON.stringify(data.dataAnggota));
+                    
+                    alert("Selamat datang, " + data.dataAnggota.nama_anggota + "!");
+                    window.location.href = "index.html"; // Lempar ke halaman katalog
+                } else {
+                    // Kalau gagal, marahin!
+                    alert("Akses Ditolak: " + data.pesan);
+                }
+            })
+            .catch(err => {
+                alert("Gagal terhubung ke server");
+                console.error(err);
+            });
+        });
+    </script>
+</body>
+</html>

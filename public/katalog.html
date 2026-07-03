@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PerpusWEB - Katalog Lengkap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-gray-800 font-sans relative">
+
+    <a href="login-admin.html" class="absolute top-2 right-3 text-[10px] text-yellow-600 opacity-30 hover:opacity-100 hover:text-gray-900 transition duration-300 z-50">
+        Admin
+    </a>
+    
+    <nav class="bg-yellow-400 p-4 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900 flex items-center gap-2">
+                <img src="assets/PW-logo.png" alt="Logo PerpusWEB" class="w-10 h-10 object-contain"> PerpusWEB
+            </h1>
+            
+            <div id="areaNavKanan" class="flex items-center gap-5 text-sm font-semibold">
+                </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto mt-10 p-4 flex gap-6 items-start">
+        <section id="areaKatalog" class="flex-1 w-full">
+            <div class="mb-10 text-center">
+                <h2 class="text-4xl font-extrabold mb-3 text-gray-900">Jelajahi Dunia Lewat Buku</h2>
+                <p class="text-gray-500 mb-8">Temukan bacaan favoritmu dari ribuan koleksi kami.</p>
+                
+                <div class="flex flex-col md:flex-row gap-3 max-w-4xl mx-auto">
+                    <input type="text" id="kolomPencarian" placeholder="Cari judul buku atau pengarang..." class="flex-1 p-4 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" onkeyup="cariBuku()">
+                    
+                    <select id="filterKategori" onchange="filterBuku()" class="p-3 border border-gray-200 rounded-xl text-gray-600 focus:ring-2 focus:ring-yellow-400 outline-none w-full md:w-auto">
+                        <option value="semua">Semua Kategori</option>
+                        <option value="4">Fiksi & Sastra</option>
+                        <option value="5">Edukasi & Buku Pelajaran</option>
+                        <option value="6">Aksi & Petualangan</option>
+                        <option value="7">Sejarah & Biografi</option>
+                        <option value="8">Sains & Teknologi</option>
+                        <option value="9">Bisnis & Ekonomi</option>
+                        <option value="10">Pengembangan Diri (Self-Improvement)</option>
+                        <option value="11">Agama & Spiritualitas</option>
+                        <option value="12">Kesehatan & Medis</option>
+                        <option value="13">Psikologi</option>
+                        <option value="14">Komputer & Pemrograman</option>
+                        <option value="15">Seni & Desain</option>
+                        <option value="16">Hukum & Politik</option>
+                        <option value="17">Komik & Manga</option>
+                        <option value="18">Anak-anak & Dongeng</option>
+                        <option value="19">Filsafat</option>
+                        <option value="20">Ensiklopedia & Kamus</option>
+                        <option value="21">Fantasi & Sci-Fi</option>
+                        <option value="22">Misteri & Thriller</option>
+                        <option value="23">Puisi & Antologi</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold flex items-center gap-2 text-gray-800 mb-6">
+                    Koleksi Tersedia
+                </h3>
+                <div id="rakBuku" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let dataBuku = [];
+        
+        // 1. CEK KARTU VIP
+        const akunSaya = JSON.parse(localStorage.getItem('anggotaLogin'));
+
+        function aturTampilanAwal() {
+            const areaNav = document.getElementById("areaNavKanan");
+
+            // KODE SIDEBAR UDAH GUE HAPUS TOTAL DARI SINI BIAR GAK ERROR
+            if (akunSaya) {
+                areaNav.innerHTML = `
+                    <a href="index.html" class="text-gray-800 hover:text-black transition duration-200">Beranda</a>
+                    <span class="font-bold text-gray-800 border-l-2 border-gray-800 pl-4">Halo, ${akunSaya.nama_anggota}</span>
+                    <button onclick="keluarAkun()" class="bg-gray-900 text-yellow-400 px-4 py-1.5 rounded-full font-bold shadow-sm hover:bg-black transition duration-200 text-xs">
+                        Keluar
+                    </button>
+                `;
+            } else {
+                areaNav.innerHTML = `
+                    <a href="index.html" class="text-gray-800 hover:text-black transition duration-200">Beranda</a>
+                    <button class="bg-white text-yellow-600 px-6 py-2 rounded-full font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition duration-200" onclick="window.location.href='login.html'">
+                        Login
+                    </button>
+                `;
+            }
+        }
+
+        function keluarAkun() {
+            localStorage.removeItem('anggotaLogin'); 
+            window.location.reload(); 
+        }
+
+        // ==========================================
+        // 2. NGURUSIN KATALOG BUKU
+        // ==========================================
+        function ambilBukuDariDatabase() {
+            fetch('/api/buku')
+                .then(jawaban => jawaban.json())
+                .then(responData => {
+                    if (responData.sukses) {
+                        dataBuku = responData.data;
+                        tampilkanBuku(dataBuku); // Nampilin FULL tanpa di-slice
+                    }
+                })
+                .catch(error => console.log("Gagal memanggil API:", error));
+        }
+
+        function tampilkanBuku(listBuku) {
+            const rak = document.getElementById("rakBuku");
+            rak.innerHTML = ""; 
+
+            if(listBuku.length === 0) {
+                rak.innerHTML = `<p class="text-gray-500 col-span-full text-center py-10">Tidak ada buku yang sesuai dengan pencarian Anda.</p>`;
+                return;
+            }
+
+            listBuku.forEach(buku => {
+                let badgeStok = buku.stok_buku > 0 
+                    ? `<span class="text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded">Ada (${buku.stok_buku})</span>` 
+                    : `<span class="text-red-500 text-xs font-bold bg-red-100 px-2 py-1 rounded">Habis</span>`;
+
+                let atributDisable = (!akunSaya || buku.stok_buku === 0) ? 'disabled' : '';
+                let opacityTombol = (!akunSaya || buku.stok_buku === 0) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-yellow-500 hover:text-gray-900';
+                let teksTombol = !akunSaya ? 'Login Dulu' : 'Pinjam';
+
+                rak.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition flex flex-col h-full">
+                        <div class="flex gap-2 mb-3">
+                            <span class="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full uppercase">${buku.nama_kategori}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1 leading-tight flex-1">${buku.judul_buku}</h3>
+                        <p class="text-sm text-gray-500 mb-4">${buku.pengarang}</p>
+                        
+                        <div class="mt-auto border-t border-gray-50 pt-4 flex justify-between items-center">
+                            ${badgeStok}
+                            <button onclick="pinjamBuku(${buku.id_buku})" class="bg-gray-900 text-yellow-400 text-xs font-bold px-4 py-2 rounded-lg transition ${opacityTombol}" ${atributDisable}>
+                                ${teksTombol}
+                            </button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // FUNGSI PENCARIAN & FILTER DIGABUNG BIAR SAKTI
+        function cariBuku() {
+            const kataKunci = document.getElementById("kolomPencarian").value.toLowerCase();
+            const filterKategori = document.getElementById("filterKategori").value; // Ngambil ID kategori (4, 5, 6, dst)
+            
+            const bukuTersaring = dataBuku.filter(buku => {
+                const cocokTeks = buku.judul_buku.toLowerCase().includes(kataKunci) || buku.pengarang.toLowerCase().includes(kataKunci);
+                // Cek kalau filter "semua" atau ID kategorinya cocok (ubah ke string biar aman pas dibandingin)
+                const cocokKategori = (filterKategori === "semua") || (buku.id_kategori.toString() === filterKategori);
+                
+                return cocokTeks && cocokKategori;
+            });
+            tampilkanBuku(bukuTersaring);
+        }
+
+        function filterBuku() {
+            cariBuku(); // Biar kalau dropdown diubah, dia langsung nyari
+        }
+
+        // ==========================================
+        // 3. FUNGSI MINJAM BUKU
+        // ==========================================
+        function pinjamBuku(idBukuYangDipilih) {
+            if (!akunSaya) {
+                alert("Harap Login Terlebih Dahulu untuk meminjam buku!");
+                return;
+            }
+
+            fetch('/api/transaksi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id_anggota: akunSaya.id_anggota, 
+                    id_buku: idBukuYangDipilih 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.sukses) {
+                    alert(data.pesan + "\nSilakan cek tab Beranda untuk melihat daftar pinjaman Anda.");
+                    ambilBukuDariDatabase(); // Refresh stok
+                } else {
+                    alert(data.pesan);
+                }
+            })
+            .catch(err => console.log("Server error:", err));
+        }
+
+        // JALANKAN SEMUA SAAT AWAL
+        aturTampilanAwal();
+        ambilBukuDariDatabase();
+    </script>
+</body>
+</html>

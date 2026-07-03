@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PerpusWEB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex min-h-screen">
+
+    <!-- ========================================== -->
+    <!-- SIDEBAR  -->
+    <!-- ========================================== -->
+    <aside class="w-64 bg-yellow-400 text-gray-900 flex flex-col shadow-2xl">
+        <div class="p-6 border-b border-yellow-500">
+            <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                <img src="assets/PW-logo.png" alt="Logo" class="w-8 h-8 object-contain">
+                AdminWEB
+            </h1>
+            <p class="text-xs text-gray-800 mt-1 font-medium">Panel Kendali Perpustakaan</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <button id="btnMenuBuku" onclick="gantiChannel('buku')" class="w-full flex items-center gap-3 text-left bg-gray-900 text-yellow-400 px-4 py-3 rounded-lg font-bold shadow-md transition">
+                Kelola Buku
+            </button>
+            <button id="btnMenuAnggota" onclick="gantiChannel('anggota')" class="w-full flex items-center gap-3 text-left text-gray-900 hover:bg-yellow-500 px-4 py-3 rounded-lg font-bold transition">
+                Data Anggota
+            </button>
+            <button id="btnMenuTransaksi" onclick="gantiChannel('transaksi')" class="w-full flex text-left text-gray-900 hover:bg-yellow-500 px-4 py-3 rounded-lg font-bold transition">
+                Transaksi Peminjaman
+            </button>
+            <button id="btnMenuLog" onclick="gantiChannel('log')" class="w-full flex text-left text-gray-900 hover:bg-yellow-500 px-4 py-3 rounded-lg font-bold transition">
+                Log Aktivitas
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-yellow-500">
+            <a href="index.html" class="block text-center text-sm font-bold text-red-600 hover:text-red-700 transition"> Logout </a>
+        </div>
+    </aside>
+    <!-- ========================================== -->
+    <!-- KONTEN UTAMA
+    <!-- ========================================== -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="mb-6 max-w-xl">
+            <div class="relative flex items-center">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 w-5 h-5 text-gray-900 z-10 pointer-events-none">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                
+                <input type="text" id="pencarianAdmin" onkeyup="filterPencarianGlobal()" placeholder="Cari sesuatu di halaman ini..." class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-medium transition text-sm relative z-0">
+            </div>
+        </div>
+        <!-- CHANNEL 1: KELOLA BUKU -->
+        <div id="channelBuku" class="block">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-gray-800">Manajemen Data Buku</h2>
+                    <p class="text-gray-500 mt-1">Tambah, edit, dan hapus koleksi buku.</p>
+                </div>
+                <button onclick="bukaModalBuku()" class="bg-yellow-400 text-gray-900 px-6 py-3 rounded-xl font-bold shadow-md hover:bg-yellow-500 transition flex items-center gap-2">
+                    <span>+</span> Tambah Buku
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                        <tr>
+                            <th class="p-4 font-bold">Judul Buku</th>
+                            <th class="p-4 font-bold">Pengarang</th>
+                            <th class="p-4 font-bold text-center">Stok</th>
+                            <th class="p-4 font-bold text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelBuku" class="divide-y divide-gray-100 text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CHANNEL 2: DATA ANGGOTA -->
+        <div id="channelAnggota" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-extrabold text-gray-800">Daftar Anggota Perpus</h2>
+                <p class="text-gray-500 mt-1">Pantau siapa saja yang sudah mendaftar di perpustakaan kita.</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                        <tr>
+                            <th class="p-4 font-bold">Nama Lengkap</th>
+                            <th class="p-4 font-bold">Username</th>
+                            <th class="p-4 font-bold">No. Telepon</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelAnggota" class="divide-y divide-gray-100 text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CHANNEL 3: TRANSAKSI PEMINJAMAN (The New Boss!) -->
+        <div id="channelTransaksi" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-gray-800">Catatan Transaksi</h2>
+                    <p class="text-gray-500 mt-1">Pantau buku yang sedang dipinjam dan yang sudah dikembalikan.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                        <tr>
+                            <th class="p-4 font-bold">Peminjam</th>
+                            <th class="p-4 font-bold">Buku yang Dipinjam</th>
+                            <th class="p-4 font-bold">Tgl Pinjam</th>
+                            <th class="p-4 font-bold">Jatuh Tempo</th>
+                            <th class="p-4 font-bold text-center">Denda</th>
+                            <th class="p-4 font-bold text-center">Status</th>
+                            <th class="p-4 font-bold text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelTransaksi" class="divide-y divide-gray-100 text-sm">
+                        <!-- Data Struk bakal masuk sini lewat JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="channelLog" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-extrabold text-gray-800">Log Aktifitas</h2>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                        <tr>
+                            <th class="p-4 font-bold w-48">Waktu</th>
+                            <th class="p-4 font-bold text-center">ID Admin</th>
+                            <th class="p-4 font-bold">Tindakan</th>
+                            <th class="p-4 font-bold">Keterangan Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelLog" class="divide-y divide-gray-100 text-sm">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+<div id="modalBuku" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
+            <h3 id="judulModal" class="text-2xl font-extrabold text-gray-900 mb-6">Tambah Koleksi Baru</h3>
+            <form id="formBuku" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Judul Buku</label>
+                    <input type="text" id="inputJudul" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Pengarang</label>
+                        <input type="text" id="inputPengarang" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Penerbit</label>
+                        <input type="text" id="inputPenerbit" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Kategori</label>\
+                        <select id="inputKategori" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400">
+                            <option value="4">Fiksi & Sastra</option>
+                            <option value="5">Edukasi & Buku Pelajaran</option>
+                            <option value="6">Aksi & Petualangan</option>
+                            <option value="7">Sejarah & Biografi</option>
+                            <option value="8">Sains & Teknologi</option>
+                            <option value="9">Bisnis & Ekonomi</option>
+                            <option value="10">Pengembangan Diri (Self-Improvement)</option>
+                            <option value="11">Agama & Spiritualitas</option>
+                            <option value="12">Kesehatan & Medis</option>
+                            <option value="13">Psikologi</option>
+                            <option value="14">Komputer & Pemrograman</option>
+                            <option value="15">Seni & Desain</option>
+                            <option value="16">Hukum & Politik</option>
+                            <option value="17">Komik & Manga</option>
+                            <option value="18">Anak-anak & Dongeng</option>
+                            <option value="19">Filsafat</option>
+                            <option value="20">Ensiklopedia & Kamus</option>
+                            <option value="21">Fantasi & Sci-Fi</option>
+                            <option value="22">Misteri & Thriller</option>
+                            <option value="23">Puisi & Antologi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Stok</label>
+                        <input type="number" id="inputStok" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" required>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="tutupModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition">Batal</button>
+                    <button type="submit" class="flex-1 bg-gray-900 text-yellow-400 font-bold py-3 rounded-xl hover:bg-black transition">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let listBukuGlobal = []; 
+        let idYangLagiDiedit = null; 
+        let listAnggotaGlobal = []; // <--- Pastiin ini ada
+        let listLogGlobal = []; // <--- Pastiin ini ada
+
+        // ==========================================
+        // 1. FUNGSI LOAD & RENDER TABEL
+        // ==========================================
+        function muatBukuDariDatabase() {
+            fetch('/api/buku')
+                .then(jawaban => jawaban.json())
+                .then(respon => {
+                    if (respon.sukses) {
+                        listBukuGlobal = respon.data; 
+                        renderTabelBuku(listBukuGlobal);
+                    }
+                })
+                .catch(err => console.log("Gagal muat buku:", err));
+        }
+
+        function renderTabelBuku(listBuku) {
+            const tabel = document.getElementById("tabelBuku");
+            tabel.innerHTML = ""; 
+            listBuku.forEach((buku) => {
+                tabel.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                        <td class="p-4 font-bold text-gray-800">${buku.judul_buku}</td>
+                        <td class="p-4 text-gray-600">${buku.pengarang}</td>
+                        
+                        <td class="p-4 text-center">
+                            <span class="bg-yellow-400 text-gray-900 px-3 py-1 rounded-md text-xs font-extrabold shadow-sm">${buku.stok_buku}</span>
+                        </td>
+                        
+                        <td class="p-4 text-center flex gap-2 justify-center">
+                            <button onclick="bukaModalEdit(${buku.id_buku})" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                                <img src="https://api.iconify.design/lucide:edit.svg?color=%23111827" alt="Edit" class="w-4 h-4"> 
+                                Edit
+                            </button>
+                            <button onclick="hapusBuku(${buku.id_buku})" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                                <img src="https://api.iconify.design/lucide:trash-2.svg?color=%23111827" alt="Hapus" class="w-4 h-4"> 
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // ==========================================
+        // 2. FUNGSI MODAL (Buka/Tutup/Isi Form)
+        // ==========================================
+        const modal = document.getElementById("modalBuku");
+        const judulModal = document.getElementById("judulModal");
+        
+        function tutupModal() { 
+            modal.classList.add("hidden"); 
+        }
+
+        function bukaModalBuku() { 
+            document.getElementById("formBuku").reset(); 
+            judulModal.innerText = "Tambah Koleksi Baru"; 
+            idYangLagiDiedit = null; 
+            modal.classList.remove("hidden"); 
+        }
+
+        function bukaModalEdit(idBuku) {
+            let buku = listBukuGlobal.find(b => b.id_buku === idBuku);
+            
+            document.getElementById("inputKategori").value = buku.id_kategori;
+            document.getElementById("inputJudul").value = buku.judul_buku;
+            document.getElementById("inputPengarang").value = buku.pengarang;
+            document.getElementById("inputPenerbit").value = buku.penerbit;
+            document.getElementById("inputStok").value = buku.stok_buku;
+            
+            judulModal.innerText = "Edit Data Buku"; 
+            idYangLagiDiedit = idBuku; 
+            modal.classList.remove("hidden");
+        }
+
+        // ==========================================
+        // 3. FUNGSI SUBMIT (SIMPAN DATA)
+        // ==========================================
+        const form = document.getElementById("formBuku");
+        form.addEventListener("submit", function(event) {
+            event.preventDefault(); 
+
+            let dataForm = {
+                id_kategori: document.getElementById("inputKategori").value,
+                judul_buku: document.getElementById("inputJudul").value,
+                pengarang: document.getElementById("inputPengarang").value,
+                penerbit: document.getElementById("inputPenerbit").value,
+                stok_buku: parseInt(document.getElementById("inputStok").value)
+            };
+
+            // CEK: Apakah ini mode NAMBAH atau EDIT?
+            if (idYangLagiDiedit === null) {
+                // POST: Nambah Buku
+                fetch('/api/buku', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataForm)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sukses) { alert("Buku berhasil ditambahkan!"); tutupModal(); muatBukuDariDatabase(); }
+                    else { alert("Gagal dari server: " + data.pesan); }
+                })
+                .catch(err => {
+                    alert("Server Error: " + err.message);
+                    console.error(err);
+                });
+            } else {
+                // PUT: Edit Buku
+                fetch('/api/buku/' + idYangLagiDiedit, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataForm)
+                })
+                .then(res => {
+                    // Cek kalau server gak nemu jalurnya (Error 404)
+                    if (!res.ok) throw new Error("Jalur PUT /api/buku/:id belum ada di server.js lu!");
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.sukses) { alert("Data berhasil di-update!"); tutupModal(); muatBukuDariDatabase(); }
+                    else { alert("Gagal dari server: " + data.pesan); }
+                })
+                .catch(err => {
+                    alert("Error Edit: " + err.message);
+                    console.error(err);
+                });
+            }
+        });
+
+        // FUNGSI HAPUS BUKU
+        function hapusBuku(idBuku) {
+            let yakinGak = confirm("Delete : Menghapus buku dari database ");
+            if (yakinGak) {
+                fetch('/api/buku/' + idBuku, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sukses) { alert("Buku berhasil dihapus!"); muatBukuDariDatabase(); }
+                })
+                .catch(err => alert("Server Error: " + err.message));
+            }
+        }
+
+        // ==========================================
+        // 4. TABEL ANGGOTA & TRANSAKSI
+        // ==========================================
+        // Data bohongan anggota kita HAPUS. Sisa transaksi doang yang masih bohongan
+        let dataTransaksi = [ { namaPeminjam: "Contoh Peminjam", judulBuku: "Contoh Buku", tglPinjam: "2026-06-10", tglJatuhTempo: "2026-06-15", status: 0, denda: 0 } ];
+
+        function muatAnggotaDariDatabase() {
+            fetch('/api/anggota')
+                .then(jawaban => jawaban.json())
+                .then(respon => {
+                    if (respon.sukses) {
+                        listAnggotaGlobal = respon.data; // <--- Simpen ke memori global
+                        renderTabelAnggota(listAnggotaGlobal);
+                    }
+                })
+                .catch(err => console.log("Gagal muat anggota:", err));
+        }
+
+        function renderTabelAnggota(listAnggota) {
+            const tbAnggota = document.getElementById("tabelAnggota");
+            tbAnggota.innerHTML = ""; 
+            listAnggota.forEach((a) => { 
+                tbAnggota.innerHTML += `
+                <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                    <td class="p-4 font-bold text-gray-800">${a.nama_anggota}</td>
+                    <td class="p-4 text-gray-600">@${a.username}</td>
+                    <td class="p-4 text-gray-600">${a.nomor_telepon}</td>
+                </tr>`; 
+            });
+        }
+
+        // ==========================================
+        // 4. TABEL TRANSAKSI (DATA ASLI DARI DATABASE)
+        // ==========================================
+        let listTransaksiGlobal = []; // Memori untuk nampung transaksi
+
+        function muatTransaksiDariDatabase() {
+            fetch('/api/transaksi')
+                .then(res => res.json())
+                .then(respon => {
+                    if (respon.sukses) {
+                        listTransaksiGlobal = respon.data;
+                        renderTabelTransaksi(listTransaksiGlobal);
+                    }
+                })
+                .catch(err => console.log("Gagal memuat transaksi:", err));
+        }
+
+        function renderTabelTransaksi(listTrx) {
+            const tbTransaksi = document.getElementById("tabelTransaksi");
+            tbTransaksi.innerHTML = ""; 
+
+            if(listTrx.length === 0) {
+                tbTransaksi.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Belum ada catatan peminjaman.</td></tr>`;
+                return;
+            }
+
+            listTrx.forEach((trx) => {
+                let tglPinjam = new Date(trx.tanggal_pinjam).toISOString().split('T')[0];
+                let tglKembali = new Date(trx.tanggal_kembali).toISOString().split('T')[0];
+
+                let badgeStatus = trx.status === 0 
+                    ? `<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold animate-pulse">Dipinjam</span>` 
+                    : `<span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">Kembali</span>`;
+                let kolomDenda = trx.denda > 0 
+                    ? `<span class="text-red-600 font-bold">Rp ${trx.denda.toLocaleString('id-ID')}</span>` 
+                    : `<span class="text-gray-400 font-medium">-</span>`;
+
+                let tombolAksi = trx.status === 0
+                    ? `<button onclick="prosesBukuKembali(${trx.id_transaksi}, ${trx.id_buku}, '${trx.tanggal_kembali}')" class="bg-gray-900 text-yellow-400 px-3 py-1 rounded font-bold text-xs hover:bg-black transition flex items-center gap-2 mx-auto"><img src="images/icon-kembali.png" alt="" class="w-4 h-4 hidden"> Proses Kembali</button>`
+                    : `<span class="text-xs text-gray-400 font-medium">Selesai</span>`;
+
+                tbTransaksi.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                        <td class="p-4 font-bold text-gray-800">${trx.nama_anggota}</td>
+                        <td class="p-4 text-gray-600 font-medium">${trx.judul_buku}</td>
+                        <td class="p-4 text-gray-500 text-sm">${tglPinjam}</td>
+                        <td class="p-4 text-gray-800 text-sm font-semibold">${tglKembali}</td>
+                        <!-- Tabel Denda -->
+                        <td class="p-4 text-center">${kolomDenda}</td>
+                        <td class="p-4 text-center">${badgeStatus}</td>
+                        <td class="p-4 text-center">${tombolAksi}</td>
+                    </tr>`;
+            });
+        }
+
+        // 5. FUNGSI LOAD DATA LOG AKTIVITAS
+        function muatLogDariDatabase() {
+            fetch('/api/log')
+                .then(res => res.json())
+                .then(respon => {
+                    if (respon.sukses) {
+                        listLogGlobal = respon.data; // <--- Simpen ke memori global
+                        renderTabelLog(listLogGlobal); // *Catatan: Pastikan nama fungsi render log lu sesuai, misal renderTabelLog atau kode render manual di forEach-nya lu pindah ke fungsi tersendiri biar rapi*
+                        
+                        if(respon.data.length === 0) {
+                            tbLog.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Belum Ada Aktivitas</td></tr>`;
+                            return;
+                        }
+
+                        respon.data.forEach(log => {
+                            let waktu = new Date(log.tanggal_waktu_aktifitas).toLocaleString('id-ID');
+                            
+                            tbLog.innerHTML += `
+                                <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                                    <td class="p-4 text-gray-500 text-xs font-mono">${waktu}</td>
+                                    <td class="p-4 font-bold text-gray-800 text-center">${log.id_admin}</td>
+                                    <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold uppercase">${log.aksi}</span></td>
+                                    <td class="p-4 text-gray-600">${log.keterangan_detail}</td>
+                                </tr>`;
+                        });
+                    }
+                }).catch(err => console.log("Gagal muat log:", err));
+        }
+
+        // ==========================================
+        // 6. NAVIGASI REMOTE TV
+        // ==========================================
+        function gantiChannel(namaChannel) {
+            document.getElementById("pencarianAdmin").value = "";
+            const layars = { buku: document.getElementById("channelBuku"), anggota: document.getElementById("channelAnggota"), transaksi: document.getElementById("channelTransaksi"), log: document.getElementById("channelLog") };
+            const tombols = { buku: document.getElementById("btnMenuBuku"), anggota: document.getElementById("btnMenuAnggota"), transaksi: document.getElementById("btnMenuTransaksi"), log: document.getElementById("btnMenuLog") };
+            
+            for (let key in layars) { 
+                layars[key].classList.add("hidden"); 
+                // INI YANG DIUBAH: text-gray-900 dan font-bold
+                tombols[key].className = "w-full text-left text-gray-900 hover:bg-yellow-500 px-4 py-3 rounded-lg font-bold transition"; 
+            }
+            
+            layars[namaChannel].classList.remove("hidden"); 
+            // KODE WARNA UNTUK TOMBOL YANG NYALA
+            tombols[namaChannel].className = "w-full text-left bg-gray-900 text-yellow-400 px-4 py-3 rounded-lg font-bold shadow-md transition";
+        }
+
+        // ==========================================
+        // FUNGSI PROSES PENGEMBALIAN BUKU OLEH ADMIN
+        // ==========================================
+        function prosesBukuKembali(idTrx, idBuku, tglJatuhTempo) {
+            // 1. Ambil Waktu Hari Ini dan Waktu Tenggat dari DB
+            const hariIni = new Date();
+            const tenggat = new Date(tglJatuhTempo);
+
+            // 2. Hitung selisih hari
+            const selisihWaktu = hariIni.getTime() - tenggat.getTime();
+            let telatBerapaHari = Math.ceil(selisihWaktu / (1000 * 3600 * 24));
+
+            let totalDenda = 0;
+            let pesanKonfirmasi = "Yakin ingin memproses pengembalian buku ini?";
+
+            // 3. Kalau telatnya lebih dari 0 hari, kita tembak denda Rp 2.000/hari
+            if (telatBerapaHari > 0) {
+                totalDenda = telatBerapaHari * 2000;
+                pesanKonfirmasi = `⚠️ PERINGATAN: Anggota telat ${telatBerapaHari} hari!\nTotal denda yang harus dibayar: Rp ${totalDenda.toLocaleString('id-ID')}\n\nLanjutkan proses pengembalian?`;
+            }
+
+            // 4. Tanya admin pakai pop-up konfirmasi
+            let yakin = confirm(pesanKonfirmasi);
+
+            if (yakin) {
+                // Panggil Pelayan via jalur PUT
+                fetch('/api/transaksi/kembali/' + idTrx, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        denda: totalDenda,
+                        id_buku: idBuku
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sukses) {
+                        alert("Sukses! " + data.pesan);
+                        muatTransaksiDariDatabase(); // Refresh tabel transaksi admin tanpa reload F5
+                    } else {
+                        alert("Gagal memproses: " + data.pesan);
+                    }
+                })
+                .catch(err => console.error("Error kembalikan buku:", err));
+            }
+        }
+        // ==========================================
+        // FUNGSI PENCARIAN GLOBAL untuk ADMIN
+        // ==========================================
+        function filterPencarianGlobal() {
+            const kataKunci = document.getElementById("pencarianAdmin").value.toLowerCase();
+            
+            // Cek Admin lagi buka tab (channel) apa sekarang
+            const channelBuku = document.getElementById("channelBuku");
+            const channelAnggota = document.getElementById("channelAnggota");
+            const channelTransaksi = document.getElementById("channelTransaksi");
+            const channelLog = document.getElementById("channelLog");
+
+            // 1. KAlAU LAGI DI TAB BUKU
+            if (!channelBuku.classList.contains("hidden")) {
+                const bukuDisaring = listBukuGlobal.filter(buku => 
+                    buku.judul_buku.toLowerCase().includes(kataKunci) || 
+                    buku.pengarang.toLowerCase().includes(kataKunci)
+                );
+                renderTabelBuku(bukuDisaring);
+            }
+            
+            // 2. KALAU LAGI DI TAB ANGGOTA
+            else if (!channelAnggota.classList.contains("hidden")) {
+                const anggotaDisaring = listAnggotaGlobal.filter(a => 
+                    a.nama_anggota.toLowerCase().includes(kataKunci) || 
+                    a.username.toLowerCase().includes(kataKunci) || 
+                    a.nomor_telepon.includes(kataKunci)
+                );
+                renderTabelAnggota(anggotaDisaring);
+            }
+            
+            // 3. KALAU LAGI DI TAB TRANSAKSI
+            else if (!channelTransaksi.classList.contains("hidden")) {
+                const transaksiDisaring = listTransaksiGlobal.filter(trx => 
+                    trx.nama_anggota.toLowerCase().includes(kataKunci) || 
+                    trx.judul_buku.toLowerCase().includes(kataKunci)
+                );
+                renderTabelTransaksi(transaksiDisaring);
+            }
+            
+            // 4. KALAU LAGI DI TAB LOG AKTIVITAS
+            else if (!channelLog.classList.contains("hidden")) {
+                const logDisaring = listLogGlobal.filter(log => 
+                    log.aksi.toLowerCase().includes(kataKunci) || 
+                    log.keterangan_detail.toLowerCase().includes(kataKunci) ||
+                    log.id_admin.toString().includes(kataKunci)
+                );
+                
+                const tbLog = document.getElementById("tabelLog");
+                tbLog.innerHTML = "";
+                if(logDisaring.length === 0) {
+                    tbLog.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Data log tidak ditemukan.</td></tr>`;
+                    return;
+                }
+                logDisaring.forEach(log => {
+                    let waktu = new Date(log.tanggal_waktu_aktifitas).toLocaleString('id-ID');
+                    tbLog.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                            <td class="p-4 text-gray-500 text-xs font-mono">${waktu}</td>
+                            <td class="p-4 font-bold text-gray-800 text-center">${log.id_admin}</td>
+                            <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold uppercase">${log.aksi}</span></td>
+                            <td class="p-4 text-gray-600">${log.keterangan_detail}</td>
+                        </tr>`;
+                });
+            }
+        }
+        // ==========================================
+        // FUNGSI GABUNGAN
+        // ==========================================
+        muatBukuDariDatabase();
+        muatAnggotaDariDatabase();
+        muatTransaksiDariDatabase();
+        muatLogDariDatabase(); 
+
+    </script>
+</body>
+</html>
