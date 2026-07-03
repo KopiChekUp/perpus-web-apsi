@@ -126,8 +126,8 @@ app.post('/api/buku', (req, res) => {
 }); 
 
 // ==========================================
-app.listen(port, () => {
-    console.log(`Restoran PerpusKu udah buka di http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log("PerpusKu sudah buka untuk publik di port " + port);
 });
 // ==========================================
 // INI JALUR PELAYAN (API) BUAT NGE-EDIT BUKU
