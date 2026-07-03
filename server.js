@@ -13,9 +13,9 @@ const db = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     ssl: { rejectUnauthorized: true },
-    port: process.env.DB_PORT   
-
+    port: process.env.DB_PORT
 });
+console.log("Cek Alamat Gudang:", process.env.DB_HOST);
 
 db.connect((err) => {
     if (err) console.error('Gagal nyambung Database:', err);
