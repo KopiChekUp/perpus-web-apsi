@@ -126,10 +126,6 @@ app.post('/api/buku', (req, res) => {
 }); 
 
 // ==========================================
-app.listen(port, '0.0.0.0', () => {
-    console.log("PerpusKu sudah buka untuk publik di port " + port);
-});
-// ==========================================
 // INI JALUR PELAYAN (API) BUAT NGE-EDIT BUKU
 // ==========================================
 app.put('/api/buku/:id', (req, res) => {
@@ -378,4 +374,7 @@ app.get('/api/transaksi', (req, res) => {
             res.json({ sukses: true, data: hasil });
         }
     });
+});
+app.listen(port, '0.0.0.0', () => {
+    console.log("PerpusKu sudah buka untuk publik di port " + port);
 });
