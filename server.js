@@ -3,8 +3,6 @@ const express = require('express');
 const mysql = require('mysql2');
 
 const app = express();
-const port = 3000;
-
 app.use(express.json()); 
 app.use(express.static('public'));
 
@@ -15,7 +13,7 @@ const db = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     ssl: { rejectUnauthorized: true },
-    port: process.env.DB_PORT
+    port: process.env.DB_PORT   
 
 });
 
